@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0b0f19">
-    <title>Motor Control Simulator by Jeffry Lacanglacang</title>
+    <title>Motor Control Simulator — Jeffry Lacanglacang</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -180,8 +180,8 @@
                     <option value="N">N (Blue)</option>
                     <option value="PE">PE (Grn/Yel)</option>
                     <option value="C1" selected>C1 (Red Ctrl)</option>
-                    <option value="DC+">DC+ (+24V)</option>
-                    <option value="DC-">DC- (0V)</option>
+                    <option value="DC+">DC+ (+DC)</option>
+                    <option value="DC-">DC- (-DC)</option>
                 </select>
             </div>
 
@@ -346,8 +346,22 @@
             <div id="prop-fields-container" class="hidden flex-1 overflow-y-auto p-4 space-y-4 text-xs text-slate-900 dark:text-white">
                 <div>
                     <label class="block font-bold text-slate-900 dark:text-white mb-1.5">Device Tag / Designation</label>
-                    <input id="prop-tag" type="text" placeholder="e.g., KM1, S1, Q1, KT1" class="touch-target w-full px-3 py-2 font-mono font-bold bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input id="prop-tag" type="text" placeholder="e.g., KM1, S1, Q1, KT1, T1, D1" class="touch-target w-full px-3 py-2 font-mono font-bold bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <p class="text-[11px] text-slate-600 dark:text-slate-200 mt-1.5 leading-snug">Contacts and poles with matching Tag actuate together with the Coil.</p>
+                </div>
+
+                <div id="prop-xfmr-group" class="hidden space-y-2.5 p-3 rounded-xl bg-amber-50 dark:bg-slate-800 border border-amber-200 dark:border-amber-500/60">
+                    <div class="font-bold text-amber-900 dark:text-amber-200">Step-Down Transformer Settings</div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block font-semibold text-slate-900 dark:text-white mb-1">Primary (V AC)</label>
+                            <input id="prop-pri-v" type="number" step="1" min="12" max="1000" value="230" class="touch-target w-full px-2.5 py-2 font-mono font-bold bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-500 rounded-xl">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-900 dark:text-white mb-1">Secondary (V AC)</label>
+                            <input id="prop-sec-v" type="number" step="1" min="1" max="1000" value="24" class="touch-target w-full px-2.5 py-2 font-mono font-bold bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-500 rounded-xl">
+                        </div>
+                    </div>
                 </div>
 
                 <div id="prop-timer-group" class="hidden space-y-2.5 p-3 rounded-xl bg-blue-50 dark:bg-slate-800 border border-blue-200 dark:border-blue-500/60">
@@ -378,8 +392,8 @@
                         <option value="N">N — Neutral (Blue)</option>
                         <option value="PE">PE — Protective Earth (Grn/Yel)</option>
                         <option value="C1">C1 — Control AC (Red)</option>
-                        <option value="DC+">DC+ — +24V DC (Red/Rose)</option>
-                        <option value="DC-">DC- — 0V DC (Cyan/Blue)</option>
+                        <option value="DC+">DC+ — Positive DC (Red/Rose)</option>
+                        <option value="DC-">DC- — Negative DC (Cyan/Blue)</option>
                     </select>
                 </div>
 
@@ -470,8 +484,8 @@ const WIRE_STYLES = {
     'N':   { name: 'N (Blue)',     color: '#2563eb', activeColor: '#38bdf8', dash: [] },
     'PE':  { name: 'PE (Grn/Yel)', color: '#16a34a', activeColor: '#4ade80', dash: [6, 4] },
     'C1':  { name: 'C1 (Control)', color: '#dc2626', activeColor: '#ff3b30', dash: [] },
-    'DC+': { name: 'DC+ (+24V)',   color: '#be123c', activeColor: '#fb7185', dash: [] },
-    'DC-': { name: 'DC- (0V)',     color: '#0369a1', activeColor: '#38bdf8', dash: [] }
+    'DC+': { name: 'DC+ (+DC)',    color: '#be123c', activeColor: '#fb7185', dash: [] },
+    'DC-': { name: 'DC- (-DC)',    color: '#0369a1', activeColor: '#38bdf8', dash: [] }
 };
 
 const COMPONENT_CATEGORIES = [
@@ -481,7 +495,7 @@ const COMPONENT_CATEGORIES = [
     { id: 'contactors',  name: 'Contactors' },
     { id: 'coils',       name: 'Coils & Timers' },
     { id: 'contacts',    name: 'Auxiliary & Timer Contacts' },
-    { id: 'motors',      name: 'Motors & Signaling' }
+    { id: 'motors',      name: 'Motors, Diodes & Signaling' }
 ];
 
 const CATALOG = {
@@ -504,12 +518,24 @@ const CATALOG = {
             { id: 'N',  label: 'N',  x: 20,  y: 20, potential: 'N'  }
         ]
     },
+    'transformer_ac': {
+        cat: 'sources', name: 'AC Step-Down Transformer', defaultTag: 'T1', width: 80, height: 80,
+        isTransformer: true,
+        defaultPrimaryV: 230,
+        defaultSecondaryV: 24,
+        terminals: [
+            { id: 'H1', label: 'H1', x: -20, y: -40 },
+            { id: 'H2', label: 'H2', x: 20,  y: -40 },
+            { id: 'X1', label: 'X1', x: -20, y: 40 },
+            { id: 'X2', label: 'X2', x: 20,  y: 40 }
+        ]
+    },
     'supply_dc': {
-        cat: 'sources', name: 'DC Supply (+24V / 0V)', defaultTag: 'G1', width: 60, height: 40,
+        cat: 'sources', name: 'DC Supply (+DC / -DC)', defaultTag: 'G1', width: 60, height: 40,
         isSource: true,
         terminals: [
-            { id: '+', label: '+24V', x: -20, y: 20, potential: 'DC+' },
-            { id: '-', label: '0V',   x: 20,  y: 20, potential: 'DC-' }
+            { id: '+', label: '+DC', x: -20, y: 20, potential: 'DC+' },
+            { id: '-', label: '-DC', x: 20,  y: 20, potential: 'DC-' }
         ]
     },
     'terminal_pe': {
@@ -851,7 +877,7 @@ const CATALOG = {
         ]
     },
     'diode': {
-        cat: 'motors', name: 'Rectifier / Freewheeling Diode', defaultTag: 'V1', width: 40, height: 80,
+        cat: 'motors', name: 'Rectifier / Freewheeling Diode', defaultTag: 'D1', width: 40, height: 80,
         isDiode: true,
         terminals: [
             { id: 'A', label: 'A', x: 0, y: -40 },
@@ -1426,26 +1452,29 @@ function buildElectricalGraph() {
         }
     }
 
-    const adj = new Map();
-    function addEdge(u, v) {
+    // Bidirectional conductive edges (switches, contacts, closed overloads)
+    const condAdj = new Map();
+    // Directed forward-biased diode edges (Anode root -> Cathode root)
+    const diodeAdj = new Map();
+
+    function addCondEdge(u, v) {
         if (!u || !v) return;
         const ru = find(u);
         const rv = find(v);
         if (ru === rv) return;
-        if (!adj.has(ru)) adj.set(ru, new Set());
-        if (!adj.has(rv)) adj.set(rv, new Set());
-        adj.get(ru).add(rv);
-        adj.get(rv).add(ru);
+        if (!condAdj.has(ru)) condAdj.set(ru, new Set());
+        if (!condAdj.has(rv)) condAdj.set(rv, new Set());
+        condAdj.get(ru).add(rv);
+        condAdj.get(rv).add(ru);
     }
 
-    function addDirectedEdge(u, v) {
+    function addDiodeEdge(u, v) {
         if (!u || !v) return;
         const ru = find(u);
         const rv = find(v);
         if (ru === rv) return;
-        if (!adj.has(ru)) adj.set(ru, new Set());
-        if (!adj.has(rv)) adj.set(rv, new Set());
-        adj.get(ru).add(rv);
+        if (!diodeAdj.has(ru)) diodeAdj.set(ru, new Set());
+        diodeAdj.get(ru).add(rv);
     }
 
     for (const comp of state.components) {
@@ -1458,99 +1487,100 @@ function buildElectricalGraph() {
             if (def.switchType === 'twostep_nonc') {
                 const step = comp.step || 0;
                 if (step === 0) {
-                    addEdge(tMap['1'], tMap['2']);
+                    addCondEdge(tMap['1'], tMap['2']);
                 } else if (step === 1) {
-                    addEdge(tMap['3'], tMap['4']);
+                    addCondEdge(tMap['3'], tMap['4']);
                 } else if (step === 2) {
-                    addEdge(tMap['3'], tMap['4']);
-                    addEdge(tMap['5'], tMap['6']);
+                    addCondEdge(tMap['3'], tMap['4']);
+                    addCondEdge(tMap['5'], tMap['6']);
                 }
             } else if (def.switchType === 'momentary_nonc') {
-                if (!isClosed) addEdge(tMap['1'], tMap['2']);
-                else addEdge(tMap['3'], tMap['4']);
+                if (!isClosed) addCondEdge(tMap['1'], tMap['2']);
+                else addCondEdge(tMap['3'], tMap['4']);
             } else if (isClosed) {
                 if (def.poles === 2) {
-                    addEdge(tMap['1'], tMap['2']);
-                    addEdge(tMap['3'], tMap['4']);
+                    addCondEdge(tMap['1'], tMap['2']);
+                    addCondEdge(tMap['3'], tMap['4']);
                 } else if (def.poles === 3) {
-                    addEdge(tMap['1'], tMap['2']);
-                    addEdge(tMap['3'], tMap['4']);
-                    addEdge(tMap['5'], tMap['6']);
+                    addCondEdge(tMap['1'], tMap['2']);
+                    addCondEdge(tMap['3'], tMap['4']);
+                    addCondEdge(tMap['5'], tMap['6']);
                 } else {
                     const a = tMap['1'] || tMap['3'] || tMap['13'];
                     const b = tMap['2'] || tMap['4'] || tMap['14'];
-                    addEdge(a, b);
+                    addCondEdge(a, b);
                 }
             }
         } else if (def.isOverload) {
             const tripped = !!comp.closed;
-            if (!tripped) addEdge(tMap['95'], tMap['96']);
-            else addEdge(tMap['97'], tMap['98']);
+            if (!tripped) addCondEdge(tMap['95'], tMap['96']);
+            else addCondEdge(tMap['97'], tMap['98']);
         } else if (def.isContact) {
             const tag = (comp.tag || '').trim().toUpperCase();
             const actuated = tag ? !!state.simRuntime.coilActive[tag] : false;
             if (def.contactType === 'no') {
-                if (actuated) addEdge(tMap['13'] || tMap['67'], tMap['14'] || tMap['68']);
+                if (actuated) addCondEdge(tMap['13'] || tMap['67'], tMap['14'] || tMap['68']);
             } else if (def.contactType === 'nc') {
-                if (!actuated) addEdge(tMap['21'] || tMap['55'], tMap['22'] || tMap['56']);
+                if (!actuated) addCondEdge(tMap['21'] || tMap['55'], tMap['22'] || tMap['56']);
             } else if (def.contactType === 'co') {
-                if (!actuated) addEdge(tMap['11'], tMap['12']);
-                else addEdge(tMap['11'], tMap['14']);
+                if (!actuated) addCondEdge(tMap['11'], tMap['12']);
+                else addCondEdge(tMap['11'], tMap['14']);
             } else if (def.contactType === 'power3p') {
                 if (actuated) {
-                    addEdge(tMap['1'], tMap['2']);
-                    addEdge(tMap['3'], tMap['4']);
-                    addEdge(tMap['5'], tMap['6']);
+                    addCondEdge(tMap['1'], tMap['2']);
+                    addCondEdge(tMap['3'], tMap['4']);
+                    addCondEdge(tMap['5'], tMap['6']);
                 }
             } else if (def.contactType === 'power3p_no') {
                 if (actuated) {
-                    addEdge(tMap['1'], tMap['2']);
-                    addEdge(tMap['3'], tMap['4']);
-                    addEdge(tMap['5'], tMap['6']);
-                    addEdge(tMap['13'], tMap['14']);
+                    addCondEdge(tMap['1'], tMap['2']);
+                    addCondEdge(tMap['3'], tMap['4']);
+                    addCondEdge(tMap['5'], tMap['6']);
+                    addCondEdge(tMap['13'], tMap['14']);
                 }
             } else if (def.contactType === 'power3p_nc') {
                 if (actuated) {
-                    addEdge(tMap['1'], tMap['2']);
-                    addEdge(tMap['3'], tMap['4']);
-                    addEdge(tMap['5'], tMap['6']);
+                    addCondEdge(tMap['1'], tMap['2']);
+                    addCondEdge(tMap['3'], tMap['4']);
+                    addCondEdge(tMap['5'], tMap['6']);
                 } else {
-                    addEdge(tMap['21'], tMap['22']);
+                    addCondEdge(tMap['21'], tMap['22']);
                 }
             } else if (def.contactType === 'power3p_no_nc') {
                 if (actuated) {
-                    addEdge(tMap['1'], tMap['2']);
-                    addEdge(tMap['3'], tMap['4']);
-                    addEdge(tMap['5'], tMap['6']);
-                    addEdge(tMap['13'], tMap['14']);
+                    addCondEdge(tMap['1'], tMap['2']);
+                    addCondEdge(tMap['3'], tMap['4']);
+                    addCondEdge(tMap['5'], tMap['6']);
+                    addCondEdge(tMap['13'], tMap['14']);
                 } else {
-                    addEdge(tMap['21'], tMap['22']);
+                    addCondEdge(tMap['21'], tMap['22']);
                 }
             } else if (def.contactType === 'power4p') {
                 if (actuated) {
-                    addEdge(tMap['1'], tMap['2']);
-                    addEdge(tMap['3'], tMap['4']);
-                    addEdge(tMap['5'], tMap['6']);
-                    addEdge(tMap['7'], tMap['8']);
+                    addCondEdge(tMap['1'], tMap['2']);
+                    addCondEdge(tMap['3'], tMap['4']);
+                    addCondEdge(tMap['5'], tMap['6']);
+                    addCondEdge(tMap['7'], tMap['8']);
                 }
             } else if (def.contactType === 'power4p_2no2nc') {
                 if (actuated) {
-                    addEdge(tMap['1'], tMap['2']);
-                    addEdge(tMap['7'], tMap['8']);
+                    addCondEdge(tMap['1'], tMap['2']);
+                    addCondEdge(tMap['7'], tMap['8']);
                 } else {
-                    addEdge(tMap['3'], tMap['4']);
-                    addEdge(tMap['5'], tMap['6']);
+                    addCondEdge(tMap['3'], tMap['4']);
+                    addCondEdge(tMap['5'], tMap['6']);
                 }
             }
         } else if (def.isDiode) {
-            addDirectedEdge(tMap['A'], tMap['K']);
+            addDiodeEdge(tMap['A'], tMap['K']);
         }
     }
 
     const nodePotentials = {};
     const energizedRoots = new Set();
 
-    function propagateSource(startKey, pot) {
+    // Propagate direct AC/DC potentials through bidirectional conductive contacts/wires first
+    function propagateDirect(startKey, pot) {
         if (!startKey) return;
         const startRoot = find(startKey);
         const visited = new Set([startRoot]);
@@ -1562,7 +1592,7 @@ function buildElectricalGraph() {
             if (pot !== 'N' && pot !== 'PE' && pot !== 'DC-') {
                 energizedRoots.add(curr);
             }
-            const neighbors = adj.get(curr);
+            const neighbors = condAdj.get(curr);
             if (neighbors) {
                 for (const nxt of neighbors) {
                     if (!visited.has(nxt)) {
@@ -1574,17 +1604,41 @@ function buildElectricalGraph() {
         }
     }
 
+    // Collect direct source potentials
+    const sourceSeeds = [];
     for (const comp of state.components) {
         const def = CATALOG[comp.type];
-        if (!def || !def.isSource) continue;
+        if (!def) continue;
         const tMap = compTermKeys.get(comp.id);
-        for (const t of def.terminals) {
-            if (t.potential && tMap[t.id]) {
-                propagateSource(tMap[t.id], t.potential);
+        if (def.isSource) {
+            for (const t of def.terminals) {
+                if (t.potential && tMap[t.id]) {
+                    sourceSeeds.push({ key: tMap[t.id], pot: t.potential });
+                }
             }
         }
     }
 
+    // Run direct propagation for primary/DC/AC sources
+    for (const s of sourceSeeds) {
+        propagateDirect(s.key, s.pot);
+    }
+
+    // Check if any step-down transformer primary (H1-H2) has a valid AC potential difference
+    // If energized, induce isolated secondary AC potentials (L1 on X1, N on X2)
+    for (const comp of state.components) {
+        const def = CATALOG[comp.type];
+        if (!def || !def.isTransformer) continue;
+        const tMap = compTermKeys.get(comp.id);
+        const rH1 = graphCheckRoot(find, tMap['H1']);
+        const rH2 = graphCheckRoot(find, tMap['H2']);
+        if (hasValidPotentialDiff(nodePotentials[rH1], nodePotentials[rH2])) {
+            propagateDirect(tMap['X1'], 'L1');
+            propagateDirect(tMap['X2'], 'N');
+        }
+    }
+
+    // Check direct (non-rectified) short circuits on conductive nodes
     for (const [root, pots] of Object.entries(nodePotentials)) {
         const liveAC = ['L1', 'L2', 'L3'].filter(p => pots.has(p));
         if (liveAC.length >= 2) {
@@ -1594,8 +1648,99 @@ function buildElectricalGraph() {
             return { shortCircuit: `Phase-to-${pots.has('N') ? 'Neutral' : 'Earth'} Short Circuit!` };
         }
         if (pots.has('DC+') && (pots.has('DC-') || pots.has('PE'))) {
-            return { shortCircuit: 'DC +24V to 0V/PE Short Circuit!' };
+            return { shortCircuit: 'DC +DC to -DC/PE Short Circuit!' };
         }
+    }
+
+    // Propagate rectified DC+ through forward-biased diodes (Anode -> Cathode)
+    // Any node fed via a diode anode from an AC/DC+ source becomes a DC+ rectified bus
+    const dcPlusQueue = [];
+    const dcPlusVisited = new Set();
+
+    function seedDCPlus(root) {
+        if (!root || dcPlusVisited.has(root)) return;
+        dcPlusVisited.add(root);
+        dcPlusQueue.push(root);
+        if (!nodePotentials[root]) nodePotentials[root] = new Set();
+        nodePotentials[root].add('DC+');
+        energizedRoots.add(root);
+    }
+
+    for (const [anodeRoot, cathodes] of diodeAdj.entries()) {
+        const aPots = nodePotentials[anodeRoot];
+        const hasHotFeed = aPots && (aPots.has('L1') || aPots.has('L2') || aPots.has('L3') || aPots.has('N') || aPots.has('DC+'));
+        if (hasHotFeed) {
+            for (const kRoot of cathodes) {
+                seedDCPlus(kRoot);
+            }
+        }
+    }
+
+    while (dcPlusQueue.length > 0) {
+        const curr = dcPlusQueue.shift();
+        const condNeighbors = condAdj.get(curr);
+        if (condNeighbors) {
+            for (const nxt of condNeighbors) {
+                seedDCPlus(nxt);
+            }
+        }
+        const diodeTargets = diodeAdj.get(curr);
+        if (diodeTargets) {
+            for (const nxt of diodeTargets) {
+                seedDCPlus(nxt);
+            }
+        }
+    }
+
+    // Also mark nodes on the anode side of diodes that feed a DC+ bus as DC- return side
+    // when AC or DC- is present on that anode branch
+    for (const [anodeRoot, cathodes] of diodeAdj.entries()) {
+        let feedsDCPlus = false;
+        for (const kRoot of cathodes) {
+            if (nodePotentials[kRoot] && nodePotentials[kRoot].has('DC+')) {
+                feedsDCPlus = true;
+                break;
+            }
+        }
+        if (feedsDCPlus) {
+            const aPots = nodePotentials[anodeRoot];
+            if (aPots && (aPots.has('L1') || aPots.has('L2') || aPots.has('L3') || aPots.has('N') || aPots.has('DC-'))) {
+                const retVisited = new Set([anodeRoot]);
+                const retQueue = [anodeRoot];
+                while (retQueue.length > 0) {
+                    const rCurr = retQueue.shift();
+                    if (!nodePotentials[rCurr]) nodePotentials[rCurr] = new Set();
+                    nodePotentials[rCurr].add('DC-');
+                    const cNbrs = condAdj.get(rCurr);
+                    if (cNbrs) {
+                        for (const nxt of cNbrs) {
+                            if (!retVisited.has(nxt)) {
+                                retVisited.add(nxt);
+                                retQueue.push(nxt);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Check if DC+ and DC- are directly shorted together
+    for (const [root, pots] of Object.entries(nodePotentials)) {
+        if (pots.has('DC+') && pots.has('DC-')) {
+            return { shortCircuit: 'Rectified DC+ to DC- Short Circuit!' };
+        }
+    }
+
+    // Combined adjacency for path checks (motors, star-delta, etc.)
+    const adj = new Map();
+    for (const [u, nbrs] of condAdj.entries()) {
+        if (!adj.has(u)) adj.set(u, new Set());
+        for (const v of nbrs) adj.get(u).add(v);
+    }
+    for (const [u, nbrs] of diodeAdj.entries()) {
+        if (!adj.has(u)) adj.set(u, new Set());
+        for (const v of nbrs) adj.get(u).add(v);
     }
 
     return {
@@ -1606,6 +1751,10 @@ function buildElectricalGraph() {
         nodePotentials,
         energizedRoots
     };
+}
+
+function graphCheckRoot(findFn, k) {
+    return k ? findFn(k) : null;
 }
 
 function hasValidPotentialDiff(potsA, potsB) {
@@ -2060,7 +2209,44 @@ function drawComponent(ctx, comp, isSelected) {
         ? (def.isContact ? (tagUpper ? !!state.simRuntime.coilActive[tagUpper] : false) : !!comp.closed)
         : (typeof comp.closed === 'boolean' ? comp.closed : !!def.defaultClosed);
 
-    if (def.isSource) {
+    if (def.isTransformer) {
+        // Primary leads (H1, H2) and Primary coil arc
+        ctx.beginPath();
+        ctx.moveTo(-20, -40); ctx.lineTo(-20, -24);
+        ctx.moveTo(20, -40);  ctx.lineTo(20, -24);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(-10, -16, 10, Math.PI, 0, false);
+        ctx.arc(10, -16, 10, Math.PI, 0, false);
+        ctx.stroke();
+
+        // Magnetic core double lines
+        ctx.save();
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-24, -4); ctx.lineTo(24, -4);
+        ctx.moveTo(-24, 4);  ctx.lineTo(24, 4);
+        ctx.stroke();
+        ctx.restore();
+
+        // Secondary coil arc and leads (X1, X2)
+        ctx.beginPath();
+        ctx.arc(-10, 16, 10, 0, Math.PI, false);
+        ctx.arc(10, 16, 10, 0, Math.PI, false);
+        ctx.moveTo(-20, 24); ctx.lineTo(-20, 40);
+        ctx.moveTo(20, 24);  ctx.lineTo(20, 40);
+        ctx.stroke();
+
+        const priV = comp.primaryV ?? def.defaultPrimaryV ?? 230;
+        const secV = comp.secondaryV ?? def.defaultSecondaryV ?? 24;
+        ctx.font = 'bold 8px "JetBrains Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = isDark ? '#fbbf24' : '#b45309';
+        ctx.fillText(`${priV}V→${secV}V`, 0, 0);
+    } else if (def.isSource) {
         ctx.fillStyle = isDark ? '#1e293b' : '#e2e8f0';
         roundRectPath(ctx, -def.width / 2 + 4, -14, def.width - 8, 22, 5);
         ctx.fill();
@@ -2806,6 +2992,8 @@ function addComponentAt(type, wx, wy) {
         closed: !!def.defaultClosed,
         step: 0,
         delay: def.defaultDelay || 3.0,
+        primaryV: def.defaultPrimaryV || 230,
+        secondaryV: def.defaultSecondaryV || 24,
         color: def.defaultColor || '#22c55e',
         comment: def.isLabel ? 'SECTION TITLE' : '',
         terminalLabels: {}
@@ -2951,6 +3139,7 @@ function populateInspector() {
     fields.classList.remove('hidden');
     footer.classList.remove('hidden');
 
+    const xfmrGrp = document.getElementById('prop-xfmr-group');
     const timerGrp = document.getElementById('prop-timer-group');
     const colorGrp = document.getElementById('prop-color-group');
     const wireGrp = document.getElementById('prop-wire-group');
@@ -2971,6 +3160,7 @@ function populateInspector() {
         document.getElementById('prop-comment').value = state.inspectorDraft.comment;
         document.getElementById('prop-wire-potential').value = state.inspectorDraft.potential;
         wireGrp.classList.remove('hidden');
+        xfmrGrp.classList.add('hidden');
         timerGrp.classList.add('hidden');
         colorGrp.classList.add('hidden');
         stateGrp.classList.add('hidden');
@@ -2986,6 +3176,8 @@ function populateInspector() {
             id: comp.id,
             tag: comp.tag || '',
             comment: comp.comment || '',
+            primaryV: comp.primaryV ?? def.defaultPrimaryV ?? 230,
+            secondaryV: comp.secondaryV ?? def.defaultSecondaryV ?? 24,
             delay: comp.delay ?? def.defaultDelay ?? 3.0,
             color: comp.color || def.defaultColor || '#22c55e',
             closed: !!comp.closed,
@@ -2999,6 +3191,14 @@ function populateInspector() {
         wireGrp.classList.add('hidden');
         rotGrp.classList.remove('hidden');
         highlightActiveRotationBtn(state.inspectorDraft.rotation);
+
+        if (def && def.isTransformer) {
+            xfmrGrp.classList.remove('hidden');
+            document.getElementById('prop-pri-v').value = state.inspectorDraft.primaryV;
+            document.getElementById('prop-sec-v').value = state.inspectorDraft.secondaryV;
+        } else {
+            xfmrGrp.classList.add('hidden');
+        }
 
         if (def && def.isCoil && (def.coilType === 'ton' || def.coilType === 'tof' || def.coilType === 'flasher')) {
             timerGrp.classList.remove('hidden');
@@ -3076,6 +3276,12 @@ function applyInspectorChanges() {
         comp.comment = document.getElementById('prop-comment').value.trim();
         comp.rotation = state.inspectorDraft.rotation;
 
+        if (def && def.isTransformer) {
+            const rawPri = parseFloat(document.getElementById('prop-pri-v').value);
+            const rawSec = parseFloat(document.getElementById('prop-sec-v').value);
+            comp.primaryV = Math.max(1, isNaN(rawPri) ? 230 : rawPri);
+            comp.secondaryV = Math.max(1, isNaN(rawSec) ? 24 : rawSec);
+        }
         if (def && def.isCoil && (def.coilType === 'ton' || def.coilType === 'tof' || def.coilType === 'flasher')) {
             const rawDelay = parseFloat(document.getElementById('prop-delay').value);
             comp.delay = Math.max(0.2, isNaN(rawDelay) ? 3.0 : rawDelay);
@@ -3662,6 +3868,12 @@ function setupCanvasInteractions() {
 
 function getSymbolMiniIcon(type) {
     const stroke = 'currentColor';
+    if (type === 'transformer_ac') {
+        return `<svg class="w-6 h-6 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="${stroke}" stroke-width="2"><circle cx="9" cy="9" r="3.5"/><circle cx="15" cy="9" r="3.5"/><path d="M5 12h14"/><circle cx="9" cy="15" r="3.5"/><circle cx="15" cy="15" r="3.5"/></svg>`;
+    }
+    if (type === 'diode') {
+        return `<svg class="w-6 h-6 text-rose-500" viewBox="0 0 24 24" fill="none" stroke="${stroke}" stroke-width="2"><path d="M12 3v6m0 6v6M7 15h10M7 9h10l-5 6-5-6z"/></svg>`;
+    }
     if (type.startsWith('supply') || type === 'terminal_pe') {
         return `<svg class="w-6 h-6 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="${stroke}" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>`;
     }
@@ -3878,7 +4090,7 @@ window.addEventListener('load', () => {
     document.getElementById('prop-btn-dup').addEventListener('click', duplicateSelected);
     document.getElementById('prop-btn-del').addEventListener('click', deleteSelected);
 
-    ['prop-tag', 'prop-comment', 'prop-delay'].forEach(id => {
+    ['prop-tag', 'prop-comment', 'prop-delay', 'prop-pri-v', 'prop-sec-v'].forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
         el.addEventListener('input', () => setInspectorDirty(true));
@@ -3989,12 +4201,14 @@ window.addEventListener('load', () => {
             fitSchematicToScreen();
             document.getElementById('json-modal').classList.add('hidden');
         } catch (err) {
-            document.getElementById('json-modal-title').textContent = 'Invalid JSON Format — Check Syntax';
+            document.getElementById('json-modal-title').textContent = 'Invalid JSON — Check Syntax';
         }
     });
 
-    document.getElementById('btn-grid-toggle').addEventListener('click', () => {
+    document.getElementById('btn-grid-toggle').addEventListener('click', (e) => {
         state.snapToGrid = !state.snapToGrid;
+        e.currentTarget.classList.toggle('text-blue-600', state.snapToGrid);
+        e.currentTarget.classList.toggle('dark:text-blue-400', state.snapToGrid);
         render();
     });
 
@@ -4006,18 +4220,21 @@ window.addEventListener('load', () => {
         const dpr = window.devicePixelRatio || 1;
         zoomAtScreenPoint(1.2, (canvas.width / dpr) / 2, (canvas.height / dpr) / 2);
     });
-
     document.getElementById('btn-zoom-out').addEventListener('click', () => {
         const canvas = document.getElementById('cad-canvas');
         const dpr = window.devicePixelRatio || 1;
         zoomAtScreenPoint(0.83, (canvas.width / dpr) / 2, (canvas.height / dpr) / 2);
     });
 
-    document.getElementById('btn-sound-toggle').addEventListener('click', () => {
+    document.getElementById('btn-sound-toggle').addEventListener('click', async () => {
         state.soundEnabled = !state.soundEnabled;
         document.getElementById('icon-sound-on').classList.toggle('hidden', !state.soundEnabled);
         document.getElementById('icon-sound-off').classList.toggle('hidden', state.soundEnabled);
-        if (!state.soundEnabled) setBuzzerSound(false);
+        if (state.soundEnabled) {
+            await ensureAudioReady();
+        } else {
+            setBuzzerSound(false);
+        }
     });
 
     document.getElementById('btn-theme-toggle').addEventListener('click', () => {
@@ -4026,62 +4243,45 @@ window.addEventListener('load', () => {
         render();
     });
 
-    const launchScreen = document.getElementById('launch-screen');
-    const launchBtn = document.getElementById('btn-launch-app');
-    if (launchBtn && launchScreen) {
-        launchBtn.addEventListener('click', () => {
-            launchScreen.classList.add('opacity-0', 'pointer-events-none');
-            setTimeout(() => {
-                launchScreen.classList.add('hidden');
-                resizeCanvas();
-            }, 250);
-        });
-    }
+    document.getElementById('btn-launch-app').addEventListener('click', async () => {
+        await ensureAudioReady();
+        const screen = document.getElementById('launch-screen');
+        screen.classList.add('opacity-0', 'pointer-events-none');
+        setTimeout(() => {
+            screen.classList.add('hidden');
+            resizeCanvas();
+        }, 250);
+    });
 
     window.addEventListener('keydown', (e) => {
-        const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
-        if (activeTag === 'input' || activeTag === 'textarea' || activeTag === 'select') return;
+        const tag = document.activeElement && document.activeElement.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
 
         if (e.code === 'Space') {
             state.spacePressed = true;
-            return;
-        }
-        if (e.key === 'Escape') {
-            state.drawingWire = null;
-            render();
-            return;
-        }
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+        } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
             e.preventDefault();
             if (e.shiftKey) redo();
             else undo();
-            return;
-        }
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+        } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
             e.preventDefault();
             redo();
-            return;
-        }
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
+        } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
             e.preventDefault();
             duplicateSelected();
-            return;
-        }
-        if (e.key === 'Delete' || e.key === 'Backspace') {
+        } else if (e.key === 'Delete' || e.key === 'Backspace') {
             deleteSelected();
-            return;
-        }
-        if (e.key.toLowerCase() === 'r') {
+        } else if (e.key.toLowerCase() === 'r') {
             rotateSelected();
-            return;
-        }
-        if (e.key.toLowerCase() === 'v') {
+        } else if (e.key.toLowerCase() === 'v') {
             setTool('select');
-            return;
-        }
-        if (e.key.toLowerCase() === 'w') {
+        } else if (e.key.toLowerCase() === 'w') {
             setTool('wire');
-            return;
+        } else if (e.key === 'Escape') {
+            if (state.drawingWire) {
+                state.drawingWire = null;
+                render();
+            }
         }
     });
 
