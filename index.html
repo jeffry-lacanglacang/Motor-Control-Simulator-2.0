@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
     <meta name="theme-color" content="#020617">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -38,21 +38,24 @@
             padding-right: var(--sar);
         }
 
-        /* Custom Scrollbars (Desktop & Android WebView) */
+        /* Custom Scrollbars (Desktop & Mobile) */
         ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+            width: 7px;
+            height: 7px;
         }
         ::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.15);
+            background: rgba(15, 23, 42, 0.5);
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.22);
+            background: rgba(148, 163, 184, 0.28);
             border-radius: 4px;
         }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.45);
+        }
 
-        /* Responsive Board Sizing for Android Portrait & Desktop */
+        /* Responsive Board Sizing for Mobile & Widescreen Desktop */
         .board-wrapper {
             width: min(94vw, 540px, 60dvh);
             max-width: 100%;
@@ -60,7 +63,13 @@
 
         @media (min-width: 1024px) {
             .board-wrapper {
-                width: min(560px, 72dvh);
+                width: min(620px, 73dvh);
+            }
+        }
+
+        @media (min-width: 1440px) {
+            .board-wrapper {
+                width: min(680px, 76dvh);
             }
         }
 
@@ -73,7 +82,7 @@
             justify-content: center;
             cursor: pointer;
             touch-action: manipulation;
-            transition: background-color 0.12s ease;
+            transition: background-color 0.12s ease, box-shadow 0.12s ease;
         }
 
         .piece {
@@ -83,16 +92,36 @@
             background-repeat: no-repeat;
             background-position: center;
             z-index: 10;
-            pointer-events: none;
             will-change: transform;
-            transition: transform 0.14s cubic-bezier(0.2, 0.8, 0.2, 1);
+            transition: transform 0.14s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.12s ease;
         }
 
-        /* Desktop-only hover feedback (prevents sticky hover on Android) */
+        .piece.draggable-piece {
+            cursor: grab;
+        }
+
+        .piece.draggable-piece:active {
+            cursor: grabbing;
+        }
+
+        .piece.dragging {
+            opacity: 0.35;
+            transform: scale(0.92);
+        }
+
+        /* Desktop-only hover & drag feedback */
         @media (hover: hover) and (pointer: fine) {
-            .board-square:hover .piece {
+            .board-square:hover {
+                box-shadow: inset 0 0 0 2px rgba(251, 191, 36, 0.35);
+            }
+            .board-square:hover .piece:not(.dragging) {
                 transform: scale(1.07);
             }
+        }
+
+        .board-square.drag-over {
+            box-shadow: inset 0 0 0 3px rgba(251, 191, 36, 0.85) !important;
+            background-color: rgba(251, 191, 36, 0.28) !important;
         }
 
         .board-square:active .piece {
@@ -150,11 +179,11 @@
 <body class="bg-slate-950 text-slate-100 flex flex-col justify-between overflow-x-hidden">
 
     <!-- PAGE 1: SETTINGS PAGE -->
-    <div id="settings-page" class="min-h-[100dvh] flex flex-col justify-between p-4 sm:p-8 max-w-4xl mx-auto w-full transition-all duration-300">
+    <div id="settings-page" class="min-h-[100dvh] flex flex-col justify-between lg:justify-center p-4 sm:p-8 max-w-4xl mx-auto w-full transition-all duration-300">
         <!-- Header -->
-        <header class="text-center my-4 sm:my-6">
+        <header class="text-center my-4 sm:my-6 lg:mb-8">
             <div class="inline-flex items-center justify-center space-x-3 mb-2">
-                <i class="fa-solid fa-chess-king text-amber-500 text-3xl sm:text-4xl"></i>
+                <i class="fa-solid fa-chess-king text-amber-500 text-3xl sm:text-4xl lg:text-5xl"></i>
                 <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">
                     CHESS MASTER
                 </h1>
@@ -169,11 +198,11 @@
             <div class="space-y-2.5">
                 <label class="block text-xs sm:text-sm font-semibold uppercase tracking-wider text-slate-400">Game Mode</label>
                 <div class="grid grid-cols-2 gap-3">
-                    <button type="button" id="mode-ai-btn" onclick="setGameMode('ai')" class="min-h-[48px] flex items-center justify-center space-x-2 p-3.5 rounded-xl border border-amber-500/50 bg-amber-500/10 text-amber-400 font-medium active:scale-[0.98] transition-all">
+                    <button type="button" id="mode-ai-btn" onclick="setGameMode('ai')" class="min-h-[48px] flex items-center justify-center space-x-2 p-3.5 rounded-xl border border-amber-500/50 bg-amber-500/10 text-amber-400 font-medium active:scale-[0.98] transition-all cursor-pointer">
                         <i class="fa-solid fa-robot"></i>
                         <span>VS AI</span>
                     </button>
-                    <button type="button" id="mode-pvp-btn" onclick="setGameMode('pvp')" class="min-h-[48px] flex items-center justify-center space-x-2 p-3.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 font-medium hover:border-slate-600 active:scale-[0.98] transition-all">
+                    <button type="button" id="mode-pvp-btn" onclick="setGameMode('pvp')" class="min-h-[48px] flex items-center justify-center space-x-2 p-3.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 font-medium hover:border-slate-600 active:scale-[0.98] transition-all cursor-pointer">
                         <i class="fa-solid fa-user-group"></i>
                         <span>2 Player</span>
                     </button>
@@ -184,11 +213,11 @@
             <div id="side-select-container" class="space-y-2.5">
                 <label class="block text-xs sm:text-sm font-semibold uppercase tracking-wider text-slate-400">Play As</label>
                 <div class="grid grid-cols-2 gap-3">
-                    <button type="button" id="side-white-btn" onclick="setPlayerSide('w')" class="min-h-[48px] flex items-center justify-center space-x-2 p-3.5 rounded-xl border border-amber-500/50 bg-amber-500/10 text-amber-400 font-medium active:scale-[0.98] transition-all">
+                    <button type="button" id="side-white-btn" onclick="setPlayerSide('w')" class="min-h-[48px] flex items-center justify-center space-x-2 p-3.5 rounded-xl border border-amber-500/50 bg-amber-500/10 text-amber-400 font-medium active:scale-[0.98] transition-all cursor-pointer">
                         <i class="fa-solid fa-chess-pawn text-slate-200"></i>
                         <span>White</span>
                     </button>
-                    <button type="button" id="side-black-btn" onclick="setPlayerSide('b')" class="min-h-[48px] flex items-center justify-center space-x-2 p-3.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 font-medium hover:border-slate-600 active:scale-[0.98] transition-all">
+                    <button type="button" id="side-black-btn" onclick="setPlayerSide('b')" class="min-h-[48px] flex items-center justify-center space-x-2 p-3.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 font-medium hover:border-slate-600 active:scale-[0.98] transition-all cursor-pointer">
                         <i class="fa-solid fa-chess-pawn text-slate-900"></i>
                         <span>Black</span>
                     </button>
@@ -199,16 +228,16 @@
             <div id="ai-diff-container" class="space-y-2.5">
                 <label class="block text-xs sm:text-sm font-semibold uppercase tracking-wider text-slate-400">AI Difficulty</label>
                 <div class="grid grid-cols-3 gap-2">
-                    <button type="button" id="diff-easy-btn" onclick="setAIDifficulty('easy')" class="min-h-[48px] p-3 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 font-medium text-sm hover:border-slate-600 active:scale-[0.98] transition-all">Easy</button>
-                    <button type="button" id="diff-medium-btn" onclick="setAIDifficulty('medium')" class="min-h-[48px] p-3 rounded-xl border border-amber-500/50 bg-amber-500/10 text-amber-400 font-medium text-sm active:scale-[0.98] transition-all">Medium</button>
-                    <button type="button" id="diff-hard-btn" onclick="setAIDifficulty('hard')" class="min-h-[48px] p-3 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 font-medium text-sm hover:border-slate-600 active:scale-[0.98] transition-all">Hard</button>
+                    <button type="button" id="diff-easy-btn" onclick="setAIDifficulty('easy')" class="min-h-[48px] p-3 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 font-medium text-sm hover:border-slate-600 active:scale-[0.98] transition-all cursor-pointer">Easy</button>
+                    <button type="button" id="diff-medium-btn" onclick="setAIDifficulty('medium')" class="min-h-[48px] p-3 rounded-xl border border-amber-500/50 bg-amber-500/10 text-amber-400 font-medium text-sm active:scale-[0.98] transition-all cursor-pointer">Medium</button>
+                    <button type="button" id="diff-hard-btn" onclick="setAIDifficulty('hard')" class="min-h-[48px] p-3 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 font-medium text-sm hover:border-slate-600 active:scale-[0.98] transition-all cursor-pointer">Hard</button>
                 </div>
             </div>
 
             <!-- Board Theme Selector -->
             <div class="space-y-2.5">
                 <label class="block text-xs sm:text-sm font-semibold uppercase tracking-wider text-slate-400">Board Theme</label>
-                <select id="board-theme-select" onchange="setBoardTheme(this.value)" class="min-h-[48px] w-full p-3.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-200 font-medium focus:outline-none focus:border-amber-500">
+                <select id="board-theme-select" onchange="setBoardTheme(this.value)" class="min-h-[48px] w-full p-3.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-200 font-medium focus:outline-none focus:border-amber-500 cursor-pointer">
                     <option value="wood">Classic Wood</option>
                     <option value="emerald">Emerald Green</option>
                     <option value="slate">Slate Gray</option>
@@ -217,7 +246,7 @@
             </div>
 
             <!-- Sound Toggle -->
-            <label for="sound-toggle" class="min-h-[64px] flex items-center justify-between p-4 bg-slate-800/60 border border-slate-700/60 rounded-xl cursor-pointer active:bg-slate-800 transition-colors">
+            <label for="sound-toggle" class="min-h-[64px] flex items-center justify-between p-4 bg-slate-800/60 border border-slate-700/60 hover:border-slate-600 rounded-xl cursor-pointer active:bg-slate-800 transition-colors">
                 <div class="flex items-center space-x-3">
                     <i id="sound-icon" class="fa-solid fa-volume-high text-amber-400 text-xl w-6 text-center"></i>
                     <div>
@@ -232,7 +261,7 @@
             </label>
 
             <!-- Flip Board Toggle -->
-            <label for="flip-toggle" class="min-h-[64px] flex items-center justify-between p-4 bg-slate-800/60 border border-slate-700/60 rounded-xl cursor-pointer active:bg-slate-800 transition-colors">
+            <label for="flip-toggle" class="min-h-[64px] flex items-center justify-between p-4 bg-slate-800/60 border border-slate-700/60 hover:border-slate-600 rounded-xl cursor-pointer active:bg-slate-800 transition-colors">
                 <div class="flex items-center space-x-3">
                     <i class="fa-solid fa-rotate text-amber-400 text-xl w-6 text-center"></i>
                     <div>
@@ -250,7 +279,7 @@
 
         <!-- Action Button -->
         <div class="mt-6 mb-2 sm:mt-8 sm:mb-4">
-            <button onclick="startGame()" class="min-h-[56px] w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-lg sm:text-xl shadow-lg shadow-amber-500/20 active:scale-[0.98] transition-all flex items-center justify-center space-x-3">
+            <button onclick="startGame()" class="min-h-[56px] w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-lg sm:text-xl shadow-lg shadow-amber-500/20 active:scale-[0.98] transition-all flex items-center justify-center space-x-3 cursor-pointer">
                 <i class="fa-solid fa-play"></i>
                 <span>PLAY GAME</span>
             </button>
@@ -262,34 +291,46 @@
     <div id="game-page" class="hidden min-h-[100dvh] flex flex-col justify-between items-center bg-slate-950">
         
         <!-- Header Bar -->
-        <header class="w-full bg-slate-900/95 backdrop-blur border-b border-slate-800 px-3 sm:px-6 py-2.5 flex items-center justify-between z-20">
-            <button onclick="returnToSettings()" class="min-h-[42px] min-w-[42px] flex items-center justify-center space-x-2 text-slate-300 hover:text-slate-100 bg-slate-800 hover:bg-slate-700 active:scale-95 px-3.5 py-2 rounded-xl text-sm font-medium transition-all">
-                <i class="fa-solid fa-gear"></i>
-                <span class="hidden sm:inline">Settings</span>
-            </button>
+        <header class="w-full bg-slate-900/95 backdrop-blur border-b border-slate-800 px-3 sm:px-6 lg:px-10 py-2.5 flex items-center justify-between z-20">
+            <div class="flex items-center space-x-2">
+                <button onclick="returnToSettings()" title="Game Settings" class="min-h-[42px] min-w-[42px] flex items-center justify-center space-x-2 text-slate-300 hover:text-slate-100 bg-slate-800 hover:bg-slate-700 active:scale-95 px-3.5 py-2 rounded-xl text-sm font-medium transition-all cursor-pointer">
+                    <i class="fa-solid fa-gear"></i>
+                    <span class="hidden sm:inline">Settings</span>
+                </button>
+                <button onclick="quickFlipBoard()" title="Flip Board (F)" class="min-h-[42px] min-w-[42px] flex items-center justify-center space-x-2 text-slate-300 hover:text-slate-100 bg-slate-800 hover:bg-slate-700 active:scale-95 px-3.5 py-2 rounded-xl text-sm font-medium transition-all cursor-pointer">
+                    <i class="fa-solid fa-retweet"></i>
+                    <span class="hidden md:inline">Flip</span>
+                </button>
+            </div>
 
             <div class="flex items-center space-x-2">
-                <div id="game-status-indicator" class="flex items-center space-x-2 bg-slate-800/90 px-3.5 py-1.5 rounded-full border border-slate-700">
+                <div id="game-status-indicator" class="flex items-center space-x-2.5 bg-slate-800/90 px-4 py-1.5 rounded-full border border-slate-700 shadow-inner">
                     <span id="turn-dot" class="w-3 h-3 rounded-full bg-slate-100 inline-block shadow"></span>
                     <span id="status-text" class="text-xs sm:text-sm font-semibold tracking-wide text-slate-200">White's Turn</span>
                 </div>
             </div>
 
-            <button id="toggle-history-btn" onclick="toggleHistoryTab()" class="min-h-[42px] min-w-[42px] flex items-center justify-center space-x-2 text-slate-300 hover:text-slate-100 bg-slate-800 hover:bg-slate-700 active:scale-95 px-3.5 py-2 rounded-xl text-sm font-medium transition-all">
-                <i class="fa-solid fa-list-ol"></i>
-                <span class="hidden sm:inline">History</span>
-            </button>
+            <div class="flex items-center space-x-2">
+                <button onclick="restartGame()" title="New Game (N)" class="hidden lg:flex min-h-[42px] items-center justify-center space-x-2 text-slate-300 hover:text-slate-100 bg-slate-800 hover:bg-slate-700 active:scale-95 px-3.5 py-2 rounded-xl text-sm font-medium transition-all cursor-pointer">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>New Game</span>
+                </button>
+                <button id="toggle-history-btn" onclick="toggleHistoryTab()" class="lg:hidden min-h-[42px] min-w-[42px] flex items-center justify-center space-x-2 text-slate-300 hover:text-slate-100 bg-slate-800 hover:bg-slate-700 active:scale-95 px-3.5 py-2 rounded-xl text-sm font-medium transition-all">
+                    <i class="fa-solid fa-list-ol"></i>
+                    <span class="hidden sm:inline">History</span>
+                </button>
+            </div>
         </header>
 
         <!-- Main Board Area & Side Panel Container -->
-        <main class="flex-1 flex flex-col lg:flex-row items-center justify-center w-full max-w-6xl px-2 py-2 sm:p-6 gap-4 lg:gap-8 relative">
+        <main class="flex-1 flex flex-col lg:flex-row items-center justify-center w-full max-w-7xl px-2 py-2 sm:p-6 lg:px-10 gap-4 lg:gap-10 relative">
             
             <!-- Chess Board Box -->
             <div class="board-wrapper flex flex-col items-center">
                 <!-- Captured Pieces Opponent -->
-                <div id="captured-top" class="w-full flex items-center justify-between min-h-[28px] px-1.5 mb-1 text-slate-400 text-xs sm:text-sm">
-                    <div class="flex items-center space-x-1.5" id="top-player-info">
-                        <span class="font-semibold text-slate-300 truncate max-w-[160px]" id="top-player-name">Opponent</span>
+                <div id="captured-top" class="w-full flex items-center justify-between min-h-[30px] px-1.5 mb-1.5 text-slate-400 text-xs sm:text-sm">
+                    <div class="flex items-center space-x-2" id="top-player-info">
+                        <span class="font-semibold text-slate-300 truncate max-w-[200px]" id="top-player-name">Opponent</span>
                     </div>
                     <div id="captured-by-top" class="flex flex-wrap justify-end gap-0.5"></div>
                 </div>
@@ -306,6 +347,7 @@
                         <div id="promotion-choices" class="flex space-x-2.5 sm:space-x-3 bg-slate-800 p-3 rounded-2xl border border-slate-700 shadow-xl">
                             <!-- Dynamically generated pieces -->
                         </div>
+                        <p class="hidden lg:block text-xs text-slate-400">Keys: Q, R, B, N or Esc to cancel</p>
                     </div>
 
                     <!-- Overlay for Game Over -->
@@ -315,62 +357,62 @@
                             <h2 id="game-over-title" class="text-xl sm:text-2xl font-bold text-slate-100">Checkmate!</h2>
                             <p id="game-over-reason" class="text-slate-400 text-xs sm:text-sm">White won by checkmate.</p>
                             <div class="pt-3 flex flex-col space-y-2.5">
-                                <button onclick="enterReplayMode()" class="min-h-[46px] w-full py-2.5 bg-slate-800 hover:bg-slate-700 active:scale-[0.98] border border-amber-500/40 text-amber-400 font-semibold rounded-xl transition-all flex items-center justify-center space-x-2 text-sm">
+                                <button onclick="enterReplayMode()" class="min-h-[46px] w-full py-2.5 bg-slate-800 hover:bg-slate-700 active:scale-[0.98] border border-amber-500/40 text-amber-400 font-semibold rounded-xl transition-all flex items-center justify-center space-x-2 text-sm cursor-pointer">
                                     <i class="fa-solid fa-film"></i>
                                     <span>Review / Replay Game</span>
                                 </button>
-                                <button onclick="restartGame()" class="min-h-[46px] w-full py-2.5 bg-amber-500 hover:bg-amber-400 active:scale-[0.98] text-slate-950 font-bold rounded-xl transition-all text-sm">Play Again</button>
-                                <button onclick="returnToSettings()" class="min-h-[46px] w-full py-2.5 bg-slate-800 hover:bg-slate-700 active:scale-[0.98] text-slate-300 font-semibold rounded-xl transition-all text-sm">Settings</button>
+                                <button onclick="restartGame()" class="min-h-[46px] w-full py-2.5 bg-amber-500 hover:bg-amber-400 active:scale-[0.98] text-slate-950 font-bold rounded-xl transition-all text-sm cursor-pointer">Play Again</button>
+                                <button onclick="returnToSettings()" class="min-h-[46px] w-full py-2.5 bg-slate-800 hover:bg-slate-700 active:scale-[0.98] text-slate-300 font-semibold rounded-xl transition-all text-sm cursor-pointer">Settings</button>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Captured Pieces Player -->
-                <div id="captured-bottom" class="w-full flex items-center justify-between min-h-[28px] px-1.5 mt-1 text-slate-400 text-xs sm:text-sm">
-                    <div class="flex items-center space-x-1.5" id="bottom-player-info">
-                        <span class="font-semibold text-slate-300 truncate max-w-[160px]" id="bottom-player-name">You</span>
+                <div id="captured-bottom" class="w-full flex items-center justify-between min-h-[30px] px-1.5 mt-1.5 text-slate-400 text-xs sm:text-sm">
+                    <div class="flex items-center space-x-2" id="bottom-player-info">
+                        <span class="font-semibold text-slate-300 truncate max-w-[200px]" id="bottom-player-name">You</span>
                     </div>
                     <div id="captured-by-bottom" class="flex flex-wrap justify-end gap-0.5"></div>
                 </div>
 
-                <!-- Replay Controls Bar (Touch-Friendly 44px Targets) -->
+                <!-- Replay Controls Bar -->
                 <div id="replay-bar" class="hidden w-full mt-2 bg-slate-900/90 border border-slate-800 rounded-xl p-2 flex items-center justify-between gap-1.5 shadow-lg">
                     <div class="flex items-center space-x-1">
-                        <button onclick="replayJumpStart()" title="Start of Game" class="w-10 h-10 sm:w-9 sm:h-9 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 flex items-center justify-center transition-all">
+                        <button onclick="replayJumpStart()" title="Start of Game (Home)" class="w-10 h-10 sm:w-9 sm:h-9 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 flex items-center justify-center transition-all cursor-pointer">
                             <i class="fa-solid fa-backward-fast text-xs"></i>
                         </button>
-                        <button onclick="replayStepBack()" title="Previous Move (Left Arrow)" class="w-10 h-10 sm:w-9 sm:h-9 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 flex items-center justify-center transition-all">
+                        <button onclick="replayStepBack()" title="Previous Move (Left Arrow)" class="w-10 h-10 sm:w-9 sm:h-9 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 flex items-center justify-center transition-all cursor-pointer">
                             <i class="fa-solid fa-backward-step text-xs"></i>
                         </button>
-                        <button id="replay-play-btn" onclick="toggleReplayAutoPlay()" title="Auto-Play Replay" class="w-11 h-10 sm:w-10 sm:h-9 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 active:scale-95 border border-amber-500/40 text-amber-400 flex items-center justify-center transition-all">
+                        <button id="replay-play-btn" onclick="toggleReplayAutoPlay()" title="Auto-Play Replay (Space)" class="w-11 h-10 sm:w-10 sm:h-9 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 active:scale-95 border border-amber-500/40 text-amber-400 flex items-center justify-center transition-all cursor-pointer">
                             <i id="replay-play-icon" class="fa-solid fa-play text-xs"></i>
                         </button>
-                        <button onclick="replayStepForward()" title="Next Move (Right Arrow)" class="w-10 h-10 sm:w-9 sm:h-9 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 flex items-center justify-center transition-all">
+                        <button onclick="replayStepForward()" title="Next Move (Right Arrow)" class="w-10 h-10 sm:w-9 sm:h-9 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 flex items-center justify-center transition-all cursor-pointer">
                             <i class="fa-solid fa-forward-step text-xs"></i>
                         </button>
-                        <button onclick="replayJumpEnd()" title="Latest Position" class="w-10 h-10 sm:w-9 sm:h-9 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 flex items-center justify-center transition-all">
+                        <button onclick="replayJumpEnd()" title="Latest Position (End)" class="w-10 h-10 sm:w-9 sm:h-9 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 flex items-center justify-center transition-all cursor-pointer">
                             <i class="fa-solid fa-forward-fast text-xs"></i>
                         </button>
                     </div>
                     <div class="flex items-center space-x-1.5">
                         <span id="replay-step-label" class="text-[11px] sm:text-xs font-mono text-slate-400 px-1.5">0 / 0</span>
-                        <button id="exit-replay-btn" onclick="exitReplayMode()" class="hidden min-h-[36px] px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-bold text-xs transition-all">
+                        <button id="exit-replay-btn" onclick="exitReplayMode()" class="hidden min-h-[36px] px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-bold text-xs transition-all cursor-pointer">
                             Resume
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- History Panel (Responsive Drawer on Mobile, Side Card on Desktop) -->
-            <div id="history-panel" class="hidden lg:flex w-full max-w-[540px] lg:w-80 bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl flex-col h-[320px] lg:h-[520px] transition-all">
+            <!-- History & Desktop Command Panel -->
+            <div id="history-panel" class="hidden lg:flex w-full max-w-[540px] lg:w-96 bg-slate-900/95 border border-slate-800 rounded-2xl p-4 lg:p-5 shadow-2xl flex-col h-[320px] lg:h-[620px] xl:h-[660px] transition-all">
                 <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
                     <h3 class="font-bold text-slate-200 flex items-center space-x-2 text-sm sm:text-base">
                         <i class="fa-solid fa-clock-rotate-left text-amber-500"></i>
                         <span>Move History</span>
                     </h3>
                     <div class="flex items-center space-x-2">
-                        <span id="move-count" class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded-md">0 moves</span>
+                        <span id="move-count" class="text-xs bg-slate-800 text-slate-400 px-2.5 py-1 rounded-md font-medium">0 moves</span>
                         <button onclick="toggleHistoryTab()" class="lg:hidden w-8 h-8 rounded-lg bg-slate-800 text-slate-400 hover:text-slate-200 flex items-center justify-center">
                             <i class="fa-solid fa-xmark text-xs"></i>
                         </button>
@@ -381,12 +423,26 @@
                     <div class="text-center text-slate-500 py-8 text-xs italic">No moves played yet</div>
                 </div>
 
+                <!-- Desktop Keyboard Shortcuts Legend -->
+                <div class="hidden lg:grid grid-cols-2 gap-x-3 gap-y-1 py-2.5 px-3 my-2.5 bg-slate-950/60 border border-slate-800/80 rounded-xl text-[11px] text-slate-400">
+                    <div class="flex justify-between"><span>Drag or Click</span><span class="text-slate-500 font-mono">Move</span></div>
+                    <div class="flex justify-between"><span>Undo</span><span class="text-slate-500 font-mono">Ctrl+Z</span></div>
+                    <div class="flex justify-between"><span>Replay Step</span><span class="text-slate-500 font-mono">← / →</span></div>
+                    <div class="flex justify-between"><span>Auto-Play</span><span class="text-slate-500 font-mono">Space</span></div>
+                    <div class="flex justify-between"><span>Flip Board</span><span class="text-slate-500 font-mono">F</span></div>
+                    <div class="flex justify-between"><span>New Game</span><span class="text-slate-500 font-mono">N</span></div>
+                </div>
+
                 <div class="pt-3 border-t border-slate-800 flex justify-between gap-2">
-                    <button onclick="undoMove()" title="Undo Move (Ctrl+Z)" class="min-h-[44px] flex-1 py-2 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 text-xs font-semibold rounded-lg transition-all flex items-center justify-center space-x-1.5">
+                    <button onclick="undoMove()" title="Undo Move (Ctrl+Z)" class="min-h-[44px] flex-1 py-2 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 text-xs font-semibold rounded-lg transition-all flex items-center justify-center space-x-1.5 cursor-pointer">
                         <i class="fa-solid fa-rotate-left"></i>
                         <span>Undo</span>
                     </button>
-                    <button onclick="restartGame()" class="min-h-[44px] flex-1 py-2 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 text-xs font-semibold rounded-lg transition-all flex items-center justify-center space-x-1.5">
+                    <button id="copy-pgn-btn" onclick="copyPGN()" title="Copy PGN Notation to Clipboard" class="min-h-[44px] flex-1 py-2 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 text-xs font-semibold rounded-lg transition-all flex items-center justify-center space-x-1.5 cursor-pointer">
+                        <i class="fa-solid fa-copy"></i>
+                        <span>Copy PGN</span>
+                    </button>
+                    <button onclick="restartGame()" title="Restart Game (N)" class="min-h-[44px] flex-1 py-2 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 text-xs font-semibold rounded-lg transition-all flex items-center justify-center space-x-1.5 cursor-pointer">
                         <i class="fa-solid fa-arrows-rotate"></i>
                         <span>Restart</span>
                     </button>
@@ -415,6 +471,7 @@
         let pendingPromotion = null;
         let isAiThinking = false;
         let aiMoveTimeout = null;
+        let draggedFromSquare = null;
 
         // Replay State
         let isReplayMode = false;
@@ -422,7 +479,7 @@
         let replayAutoInterval = null;
 
         // Piece Vector Graphics
-                const pieceSvgs = {
+        const pieceSvgs = {
             'w': {
                 'p': 'https://upload.wikimedia.org/wikipedia/commons/4/45/Chess_plt45.svg',
                 'r': 'https://upload.wikimedia.org/wikipedia/commons/7/72/Chess_rlt45.svg',
@@ -440,6 +497,20 @@
                 'k': 'https://upload.wikimedia.org/wikipedia/commons/f/f0/Chess_kdt45.svg'
             }
         };
+
+        // --- PIECE-SQUARE TABLES ---
+        const PIECE_VALUES = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 20000 };
+
+        const PST_PAWN = [
+            [ 0,  0,  0,  0,  0,  0,  0,  0],
+            [50, 50, 50, 50, 50, 50, 50, 50],
+            [10, 10, 20, 30, 30, 20, 10, 10],
+            [ 5,  5, 10, 25, 25, 10,  5,  5],
+            [ 0,  0,  0, 20, 20,  0,  0,  0],
+            [ 5, -5,-10,  0,  0,-10, -5,  5],
+            [ 5, 10, 10,-20,-20, 10, 10,  5],
+            [ 0,  0,  0,  0,  0,  0,  0,  0]
+        ];
 
         const PST_KNIGHT = [
             [-50,-40,-30,-30,-30,-30,-40,-50],
@@ -507,7 +578,7 @@
             [-50,-30,-30,-30,-30,-30,-30,-50]
         ];
 
-        // --- AUDIO SYNTHESIZER (Mobile-Unlocked Web Audio API) ---
+        // --- AUDIO SYNTHESIZER ---
         class SoundEffects {
             constructor() {
                 this.ctx = null;
@@ -603,6 +674,15 @@
             return flipped;
         }
 
+        function quickFlipBoard() {
+            config.flipBoard = !config.flipBoard;
+            const flipToggle = document.getElementById('flip-toggle');
+            if (flipToggle) flipToggle.checked = config.flipBoard;
+            updatePlayerLabels();
+            renderBoard();
+            if (game) updateCapturedPieces((isReplayMode ? buildReplayInstance(replayIndex) : game).history({ verbose: true }));
+        }
+
         function updatePlayerLabels() {
             const flipped = isBoardFlipped();
             const topColor = flipped ? 'w' : 'b';
@@ -625,13 +705,13 @@
             const aiDiffContainer = document.getElementById('ai-diff-container');
 
             if (mode === 'ai') {
-                aiBtn.className = 'min-h-[48px] flex items-center justify-center space-x-2 p-3.5 rounded-xl border border-amber-500/50 bg-amber-500/10 text-amber-400 font-medium active:scale-[0.98] transition-all';
-                pvpBtn.className = 'min-h-[48px] flex items-center justify-center space-x-2 p-3.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 font-medium hover:border-slate-600 active:scale-[0.98] transition-all';
+                aiBtn.className = 'min-h-[48px] flex items-center justify-center space-x-2 p-3.5 rounded-xl border border-amber-500/50 bg-amber-500/10 text-amber-400 font-medium active:scale-[0.98] transition-all cursor-pointer';
+                pvpBtn.className = 'min-h-[48px] flex items-center justify-center space-x-2 p-3.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 font-medium hover:border-slate-600 active:scale-[0.98] transition-all cursor-pointer';
                 sideContainer.classList.remove('opacity-40', 'pointer-events-none');
                 aiDiffContainer.classList.remove('opacity-40', 'pointer-events-none');
             } else {
-                pvpBtn.className = 'min-h-[48px] flex items-center justify-center space-x-2 p-3.5 rounded-xl border border-amber-500/50 bg-amber-500/10 text-amber-400 font-medium active:scale-[0.98] transition-all';
-                aiBtn.className = 'min-h-[48px] flex items-center justify-center space-x-2 p-3.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 font-medium hover:border-slate-600 active:scale-[0.98] transition-all';
+                pvpBtn.className = 'min-h-[48px] flex items-center justify-center space-x-2 p-3.5 rounded-xl border border-amber-500/50 bg-amber-500/10 text-amber-400 font-medium active:scale-[0.98] transition-all cursor-pointer';
+                aiBtn.className = 'min-h-[48px] flex items-center justify-center space-x-2 p-3.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 font-medium hover:border-slate-600 active:scale-[0.98] transition-all cursor-pointer';
                 sideContainer.classList.add('opacity-40', 'pointer-events-none');
                 aiDiffContainer.classList.add('opacity-40', 'pointer-events-none');
             }
@@ -643,11 +723,11 @@
             const bBtn = document.getElementById('side-black-btn');
 
             if (side === 'w') {
-                wBtn.className = 'min-h-[48px] flex items-center justify-center space-x-2 p-3.5 rounded-xl border border-amber-500/50 bg-amber-500/10 text-amber-400 font-medium active:scale-[0.98] transition-all';
-                bBtn.className = 'min-h-[48px] flex items-center justify-center space-x-2 p-3.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 font-medium hover:border-slate-600 active:scale-[0.98] transition-all';
+                wBtn.className = 'min-h-[48px] flex items-center justify-center space-x-2 p-3.5 rounded-xl border border-amber-500/50 bg-amber-500/10 text-amber-400 font-medium active:scale-[0.98] transition-all cursor-pointer';
+                bBtn.className = 'min-h-[48px] flex items-center justify-center space-x-2 p-3.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 font-medium hover:border-slate-600 active:scale-[0.98] transition-all cursor-pointer';
             } else {
-                bBtn.className = 'min-h-[48px] flex items-center justify-center space-x-2 p-3.5 rounded-xl border border-amber-500/50 bg-amber-500/10 text-amber-400 font-medium active:scale-[0.98] transition-all';
-                wBtn.className = 'min-h-[48px] flex items-center justify-center space-x-2 p-3.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 font-medium hover:border-slate-600 active:scale-[0.98] transition-all';
+                bBtn.className = 'min-h-[48px] flex items-center justify-center space-x-2 p-3.5 rounded-xl border border-amber-500/50 bg-amber-500/10 text-amber-400 font-medium active:scale-[0.98] transition-all cursor-pointer';
+                wBtn.className = 'min-h-[48px] flex items-center justify-center space-x-2 p-3.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 font-medium hover:border-slate-600 active:scale-[0.98] transition-all cursor-pointer';
             }
         }
 
@@ -656,9 +736,9 @@
             ['easy', 'medium', 'hard'].forEach(d => {
                 const btn = document.getElementById(`diff-${d}-btn`);
                 if (d === diff) {
-                    btn.className = 'min-h-[48px] p-3 rounded-xl border border-amber-500/50 bg-amber-500/10 text-amber-400 font-medium text-sm active:scale-[0.98] transition-all';
+                    btn.className = 'min-h-[48px] p-3 rounded-xl border border-amber-500/50 bg-amber-500/10 text-amber-400 font-medium text-sm active:scale-[0.98] transition-all cursor-pointer';
                 } else {
-                    btn.className = 'min-h-[48px] p-3 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 font-medium text-sm hover:border-slate-600 active:scale-[0.98] transition-all';
+                    btn.className = 'min-h-[48px] p-3 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 font-medium text-sm hover:border-slate-600 active:scale-[0.98] transition-all cursor-pointer';
                 }
             });
         }
@@ -691,6 +771,7 @@
             isReplayMode = false;
             replayIndex = 0;
             pendingPromotion = null;
+            draggedFromSquare = null;
             audio.init();
 
             document.getElementById('game-over-modal').classList.add('hidden');
@@ -725,6 +806,19 @@
             panel.classList.toggle('hidden');
             if (!panel.classList.contains('hidden')) {
                 panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        function copyPGN() {
+            if (!game || game.history().length === 0) return;
+            const pgn = game.pgn();
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(pgn).then(() => {
+                    const btn = document.getElementById('copy-pgn-btn');
+                    const original = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i><span class="text-emerald-400">Copied</span>';
+                    setTimeout(() => { btn.innerHTML = original; }, 1600);
+                });
             }
         }
 
@@ -860,6 +954,29 @@
             if (icon) icon.className = 'fa-solid fa-play text-xs';
         }
 
+        function canMovePiece(piece) {
+            if (!piece || isReplayMode || isAiThinking || game.game_over()) return false;
+            if (config.mode === 'ai' && game.turn() !== config.playerSide) return false;
+            return piece.color === game.turn();
+        }
+
+        function attemptMove(fromSq, toSq) {
+            const movesFromSq = game.moves({ square: fromSq, verbose: true });
+            const moveCandidate = movesFromSq.find(m => m.to === toSq);
+            if (!moveCandidate) return false;
+
+            if (moveCandidate.flags.includes('p') || (moveCandidate.piece === 'p' && (toSq[1] === '8' || toSq[1] === '1'))) {
+                pendingPromotion = { from: fromSq, to: toSq };
+                showPromotionModal(game.turn());
+                return true;
+            }
+
+            executeMove({ from: fromSq, to: toSq });
+            selectedSquare = null;
+            possibleMoves = [];
+            return true;
+        }
+
         function renderBoard() {
             const boardContainer = document.getElementById('chess-board');
             boardContainer.innerHTML = '';
@@ -885,13 +1002,13 @@
 
                     if ((flipped ? r === 7 : r === 0)) {
                         const fileLabel = document.createElement('span');
-                        fileLabel.className = 'absolute bottom-0.5 right-1 text-[9px] sm:text-[10px] font-bold opacity-75 pointer-events-none';
+                        fileLabel.className = 'absolute bottom-0.5 right-1 text-[10px] lg:text-xs font-bold opacity-75 pointer-events-none';
                         fileLabel.innerText = String.fromCharCode(97 + c);
                         squareDiv.appendChild(fileLabel);
                     }
                     if ((flipped ? c === 7 : c === 0)) {
                         const rankLabel = document.createElement('span');
-                        rankLabel.className = 'absolute top-0.5 left-1 text-[9px] sm:text-[10px] font-bold opacity-75 pointer-events-none';
+                        rankLabel.className = 'absolute top-0.5 left-1 text-[10px] lg:text-xs font-bold opacity-75 pointer-events-none';
                         rankLabel.innerText = r + 1;
                         squareDiv.appendChild(rankLabel);
                     }
@@ -921,10 +1038,68 @@
 
                     if (piece) {
                         const pieceDiv = document.createElement('div');
-                        pieceDiv.className = 'piece';
+                        const movable = canMovePiece(piece);
+                        pieceDiv.className = `piece ${movable ? 'draggable-piece' : ''}`;
                         pieceDiv.style.backgroundImage = `url('${pieceSvgs[piece.color][piece.type]}')`;
+
+                        if (movable) {
+                            pieceDiv.draggable = true;
+                            pieceDiv.addEventListener('dragstart', (e) => {
+                                draggedFromSquare = squareName;
+                                selectedSquare = squareName;
+                                possibleMoves = game.moves({ square: squareName, verbose: true });
+                                e.dataTransfer.effectAllowed = 'move';
+                                e.dataTransfer.setData('text/plain', squareName);
+                                requestAnimationFrame(() => {
+                                    pieceDiv.classList.add('dragging');
+                                    document.querySelectorAll('#chess-board .board-square').forEach(sqEl => {
+                                        const targetSq = sqEl.dataset.square;
+                                        if (targetSq === squareName) sqEl.classList.add('bg-amber-400/50');
+                                        const pm = possibleMoves.find(m => m.to === targetSq);
+                                        if (pm) sqEl.classList.add(pm.captured ? 'capture-move' : 'possible-move');
+                                    });
+                                });
+                            });
+
+                            pieceDiv.addEventListener('dragend', () => {
+                                draggedFromSquare = null;
+                                pieceDiv.classList.remove('dragging');
+                                document.querySelectorAll('#chess-board .drag-over').forEach(el => el.classList.remove('drag-over'));
+                            });
+                        }
+
                         squareDiv.appendChild(pieceDiv);
                     }
+
+                    // Desktop Drag & Drop Target Handlers
+                    squareDiv.addEventListener('dragover', (e) => {
+                        if (!draggedFromSquare) return;
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = 'move';
+                        if (!squareDiv.classList.contains('drag-over')) {
+                            squareDiv.classList.add('drag-over');
+                        }
+                    });
+
+                    squareDiv.addEventListener('dragleave', () => {
+                        squareDiv.classList.remove('drag-over');
+                    });
+
+                    squareDiv.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        squareDiv.classList.remove('drag-over');
+                        const fromSq = draggedFromSquare || e.dataTransfer.getData('text/plain');
+                        draggedFromSquare = null;
+                        if (!fromSq || fromSq === squareName) {
+                            renderBoard();
+                            return;
+                        }
+                        if (!attemptMove(fromSq, squareName)) {
+                            selectedSquare = null;
+                            possibleMoves = [];
+                            renderBoard();
+                        }
+                    });
 
                     squareDiv.onclick = () => handleSquareClick(squareName);
                     boardContainer.appendChild(squareDiv);
@@ -934,24 +1109,12 @@
 
         function handleSquareClick(square) {
             if (isReplayMode || isAiThinking || game.game_over()) return;
-
             if (config.mode === 'ai' && game.turn() !== config.playerSide) return;
 
             const pieceOnSquare = game.get(square);
 
             if (selectedSquare) {
-                const moveCandidate = possibleMoves.find(m => m.to === square);
-
-                if (moveCandidate) {
-                    if (moveCandidate.flags.includes('p') || (moveCandidate.piece === 'p' && (square[1] === '8' || square[1] === '1'))) {
-                        pendingPromotion = { from: selectedSquare, to: square };
-                        showPromotionModal(game.turn());
-                        return;
-                    }
-
-                    executeMove({ from: selectedSquare, to: square });
-                    selectedSquare = null;
-                    possibleMoves = [];
+                if (attemptMove(selectedSquare, square)) {
                     return;
                 }
             }
@@ -1006,6 +1169,17 @@
             }, 260);
         }
 
+        function selectPromotionPiece(pieceType) {
+            const modal = document.getElementById('promotion-modal');
+            modal.classList.add('hidden');
+            if (pendingPromotion) {
+                executeMove({ from: pendingPromotion.from, to: pendingPromotion.to, promotion: pieceType });
+                pendingPromotion = null;
+                selectedSquare = null;
+                possibleMoves = [];
+            }
+        }
+
         function showPromotionModal(color) {
             const modal = document.getElementById('promotion-modal');
             const choices = document.getElementById('promotion-choices');
@@ -1014,16 +1188,8 @@
             const pieces = ['q', 'r', 'b', 'n'];
             pieces.forEach(p => {
                 const btn = document.createElement('button');
-                btn.className = 'w-14 h-14 sm:w-16 sm:h-16 bg-slate-700 hover:bg-slate-600 active:scale-95 rounded-xl flex items-center justify-center p-2 transition-all';
-                btn.onclick = () => {
-                    modal.classList.add('hidden');
-                    if (pendingPromotion) {
-                        executeMove({ from: pendingPromotion.from, to: pendingPromotion.to, promotion: p });
-                        pendingPromotion = null;
-                        selectedSquare = null;
-                        possibleMoves = [];
-                    }
-                };
+                btn.className = 'w-14 h-14 sm:w-16 sm:h-16 bg-slate-700 hover:bg-slate-600 active:scale-95 rounded-xl flex items-center justify-center p-2 transition-all cursor-pointer';
+                btn.onclick = () => selectPromotionPiece(p);
                 const img = document.createElement('img');
                 img.src = pieceSvgs[color][p];
                 img.className = 'w-full h-full object-contain';
@@ -1034,11 +1200,10 @@
             modal.classList.remove('hidden');
         }
 
-        // --- UPGRADED AI WITH ONLINE OPENING DATABASE INTEGRATION ---
+        // --- AI WITH ONLINE OPENING DATABASE INTEGRATION ---
         async function makeAIMove() {
             if (game.game_over()) return;
 
-            // Query Lichess Opening Explorer API with 2.5s timeout so offline/slow Android networks never hang
             try {
                 const fen = game.fen();
                 const controller = new AbortController();
@@ -1333,7 +1498,7 @@
                     numSpan.innerText = `${moveNum}.`;
 
                     const wSpan = document.createElement('button');
-                    wSpan.className = `min-h-[34px] flex-1 text-left px-2 py-1 rounded font-semibold transition-colors ${whiteActive ? 'bg-amber-500/25 text-amber-300' : 'text-slate-200 hover:bg-slate-700/60'}`;
+                    wSpan.className = `min-h-[34px] flex-1 text-left px-2 py-1 rounded font-semibold transition-colors cursor-pointer ${whiteActive ? 'bg-amber-500/25 text-amber-300' : 'text-slate-200 hover:bg-slate-700/60'}`;
                     wSpan.innerText = whiteMove;
                     wSpan.onclick = () => {
                         if (i + 1 === fullHistory.length && !game.game_over()) exitReplayMode();
@@ -1341,7 +1506,7 @@
                     };
 
                     const bSpan = document.createElement('button');
-                    bSpan.className = `min-h-[34px] flex-1 text-left px-2 py-1 rounded font-semibold transition-colors ${blackMove ? (blackActive ? 'bg-amber-500/25 text-amber-300' : 'text-slate-400 hover:bg-slate-700/60') : 'pointer-events-none'}`;
+                    bSpan.className = `min-h-[34px] flex-1 text-left px-2 py-1 rounded font-semibold transition-colors ${blackMove ? (blackActive ? 'bg-amber-500/25 text-amber-300 cursor-pointer' : 'text-slate-400 hover:bg-slate-700/60 cursor-pointer') : 'pointer-events-none'}`;
                     bSpan.innerText = blackMove;
                     if (blackMove) {
                         bSpan.onclick = () => {
@@ -1443,6 +1608,7 @@
             isReplayMode = false;
             replayIndex = 0;
             pendingPromotion = null;
+            draggedFromSquare = null;
 
             document.getElementById('game-over-modal').classList.add('hidden');
             document.getElementById('promotion-modal').classList.add('hidden');
@@ -1484,7 +1650,30 @@
 
         // --- DESKTOP KEYBOARD SHORTCUTS ---
         document.addEventListener('keydown', (e) => {
-            if (document.getElementById('game-page').classList.contains('hidden')) return;
+            if (document.getElementById('game-page').classList.contains('hidden')) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    startGame();
+                }
+                return;
+            }
+
+            // Promotion shortcut keys when promotion dialog is open
+            if (!document.getElementById('promotion-modal').classList.contains('hidden')) {
+                const key = e.key.toLowerCase();
+                if (['q', 'r', 'b', 'n'].includes(key)) {
+                    e.preventDefault();
+                    selectPromotionPiece(key);
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    document.getElementById('promotion-modal').classList.add('hidden');
+                    pendingPromotion = null;
+                    selectedSquare = null;
+                    possibleMoves = [];
+                    renderBoard();
+                }
+                return;
+            }
 
             if (e.key === 'ArrowLeft') {
                 e.preventDefault();
@@ -1492,6 +1681,21 @@
             } else if (e.key === 'ArrowRight') {
                 e.preventDefault();
                 replayStepForward();
+            } else if (e.key === 'Home') {
+                e.preventDefault();
+                replayJumpStart();
+            } else if (e.key === 'End') {
+                e.preventDefault();
+                replayJumpEnd();
+            } else if (e.code === 'Space') {
+                e.preventDefault();
+                toggleReplayAutoPlay();
+            } else if (e.key.toLowerCase() === 'f' && !e.ctrlKey && !e.metaKey) {
+                e.preventDefault();
+                quickFlipBoard();
+            } else if (e.key.toLowerCase() === 'n' && !e.ctrlKey && !e.metaKey) {
+                e.preventDefault();
+                restartGame();
             } else if (e.key === 'Escape') {
                 selectedSquare = null;
                 possibleMoves = [];
