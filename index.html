@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Lucide Icons (pinned version) -->
     <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
-    
+
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -49,7 +49,7 @@
         body {
             background-color: #080d17;
             color: #e2e8f0;
-            background-image: 
+            background-image:
                 linear-gradient(to right, rgba(14, 165, 233, 0.04) 1px, transparent 1px),
                 linear-gradient(to bottom, rgba(14, 165, 233, 0.04) 1px, transparent 1px);
             background-size: 40px 40px;
@@ -81,7 +81,7 @@
             font-size: clamp(1.5rem, 3.5vw, 1.875rem);
             line-height: 1.2;
         }
-        
+
         /* Custom glow effects */
         .amber-glow:hover {
             box-shadow: 0 0 25px -5px rgba(245, 158, 11, 0.35);
@@ -293,6 +293,24 @@
     <!-- Toast Notification Container (Replaces alert) -->
     <div id="toast-container" class="screen-only fixed bottom-20 md:bottom-5 right-4 left-4 sm:left-auto sm:right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
+    <!-- Preview Lightbox Modal -->
+    <div id="preview-modal" role="dialog" aria-modal="true" aria-labelledby="preview-modal-title" class="screen-only hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md p-4 sm:p-6 flex items-center justify-center">
+        <div class="w-full max-w-4xl rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl overflow-hidden">
+            <div class="flex items-center justify-between gap-4 px-5 py-3.5 border-b border-slate-800 bg-slate-950/70">
+                <div>
+                    <span id="preview-modal-badge" class="font-mono text-[11px] uppercase tracking-wider text-cyan-400 block"></span>
+                    <h3 id="preview-modal-title" class="text-base sm:text-lg font-bold text-white"></h3>
+                </div>
+                <button type="button" onclick="closePreviewModal()" aria-label="Close Preview" class="touch-target px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center cursor-pointer">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-4 sm:p-6 bg-slate-950 flex items-center justify-center max-h-[75vh] overflow-auto">
+                <img id="preview-modal-img" src="" alt="" class="max-w-full max-h-[65vh] rounded-xl border border-slate-800 object-contain">
+            </div>
+        </div>
+    </div>
+
     <!-- Navigation Bar -->
     <header class="screen-only sticky top-0 z-40 bg-slate-950/90 backdrop-blur-md border-b border-slate-800/80">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -359,7 +377,7 @@
                     <h1 class="fluid-hero-title font-extrabold tracking-tight text-white mb-3">
                         Jeffry <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-500">Lacanglacang</span>
                     </h1>
-                    
+
                     <h2 class="text-lg sm:text-2xl font-mono font-medium text-cyan-400 mb-5">
                         Electrical and Instrumentation Technician
                     </h2>
@@ -449,20 +467,24 @@
                             </span>
                         </div>
 
-                        <!-- Interactive Ladder Graphic Preview -->
-                        <div class="mb-6 p-4 rounded-xl bg-slate-950 border border-slate-800/90 font-mono text-xs text-slate-400 overflow-x-auto">
-                            <div class="flex items-center justify-between text-[10px] text-slate-500 mb-2">
-                                <span>L1 (24VDC)</span>
-                                <span>RUNG 001 // MOTOR_START_SEAL</span>
-                                <span>L2 (COM)</span>
+                        <!-- Simulator Screenshot Preview -->
+                        <div class="mb-6 rounded-xl bg-slate-950 border border-slate-800/90 overflow-hidden">
+                            <div class="flex items-center justify-between px-3.5 py-2 border-b border-slate-800/90 font-mono text-[10px] text-slate-400 bg-slate-900/60">
+                                <span class="text-cyan-400">STUDIO 5000 // MAINROUTINE</span>
+                                <span>STAR-DELTA STARTER</span>
                             </div>
-                            <div class="flex items-center justify-between gap-2 py-2 px-3 border-x-2 border-amber-500/70 text-cyan-300">
-                                <span>──┤ ├──</span>
-                                <span class="text-slate-500 text-[11px]">I:0/0</span>
-                                <span>──┤/├──</span>
-                                <span class="text-slate-500 text-[11px]">I:0/1</span>
-                                <span>────( O:0/0 )──</span>
-                            </div>
+                            <button type="button"
+                                    onclick="openPreviewModal('1000027507.png', 'PLC-5000 Industrial Ladder Logic Motor Control Simulator', 'APP_01 // LOGIX 5000 LADDER LOGIC PREVIEW')"
+                                    class="relative block w-full text-left group/img cursor-pointer focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                                <img src="1000027507.png"
+                                     alt="Preview of the PLC-5000 Industrial Ladder Logic Motor Control Simulator showing MainRoutine ladder rungs and I/O dock"
+                                     loading="lazy"
+                                     class="w-full aspect-[16/10] object-cover object-top transition-transform duration-300 group-hover/img:scale-[1.02]">
+                                <span class="absolute bottom-2.5 right-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-950/90 border border-slate-700 text-slate-200 font-mono text-[11px] opacity-95 group-hover/img:border-cyan-400 group-hover/img:text-cyan-300 transition-colors">
+                                    <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
+                                    <span>Inspect Preview</span>
+                                </span>
+                            </button>
                         </div>
 
                         <h3 class="text-xl sm:text-2xl font-bold text-white group-hover:text-cyan-400 transition-colors mb-3">
@@ -483,8 +505,8 @@
                             <span class="px-2 py-1 rounded bg-slate-950 border border-slate-800">Timers & Counters</span>
                         </div>
 
-                        <a href="https://jeffry-lacanglacang.github.io/PLC-5000-Industrial-Ladder-Logic-Motor-Control-Simulator/" 
-                           target="_blank" 
+                        <a href="https://jeffry-lacanglacang.github.io/PLC-5000-Industrial-Ladder-Logic-Motor-Control-Simulator/"
+                           target="_blank"
                            rel="noopener noreferrer"
                            class="touch-target w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 active:scale-[0.98] text-slate-950 font-bold text-sm transition-all">
                             <span>Launch Live Simulator</span>
@@ -506,19 +528,24 @@
                             </span>
                         </div>
 
-                        <!-- Interactive Motor Control Graphic Preview -->
-                        <div class="mb-6 p-4 rounded-xl bg-slate-950 border border-slate-800/90 font-mono text-xs text-slate-400 overflow-x-auto">
-                            <div class="flex items-center justify-between text-[10px] text-slate-500 mb-2">
-                                <span>3-PHASE CONTROL</span>
-                                <span>CONTACTOR // OL RELAY</span>
-                                <span>STATUS</span>
+                        <!-- Simulator Screenshot Preview -->
+                        <div class="mb-6 rounded-xl bg-slate-950 border border-slate-800/90 overflow-hidden">
+                            <div class="flex items-center justify-between px-3.5 py-2 border-b border-slate-800/90 font-mono text-[10px] text-slate-400 bg-slate-900/60">
+                                <span class="text-amber-400">IEC 60617 // SCHEMATIC ENGINE</span>
+                                <span>3-PHASE & CONTROL CIRCUIT</span>
                             </div>
-                            <div class="flex items-center justify-between gap-2 py-2 px-3 border-x-2 border-cyan-500/70 text-amber-300">
-                                <span>[PB_START]</span>
-                                <span>──[ K1 ]──</span>
-                                <span>[ OL_95-96 ]</span>
-                                <span>──( M1 )</span>
-                            </div>
+                            <button type="button"
+                                    onclick="openPreviewModal('1000027506.png', 'Motor Control Simulator', 'APP_02 // MOTOR CONTROL CIRCUIT SCHEMATIC PREVIEW')"
+                                    class="relative block w-full text-left group/img cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-400">
+                                <img src="1000027506.png"
+                                     alt="Preview of the Motor Control Simulator showing a 3-phase motor circuit, KM1/KM2/KM3 contactors, control transformer, and relay logic"
+                                     loading="lazy"
+                                     class="w-full aspect-[16/10] object-cover object-center transition-transform duration-300 group-hover/img:scale-[1.02]">
+                                <span class="absolute bottom-2.5 right-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-950/90 border border-slate-700 text-slate-200 font-mono text-[11px] opacity-95 group-hover/img:border-amber-400 group-hover/img:text-amber-300 transition-colors">
+                                    <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
+                                    <span>Inspect Preview</span>
+                                </span>
+                            </button>
                         </div>
 
                         <h3 class="text-xl sm:text-2xl font-bold text-white group-hover:text-amber-400 transition-colors mb-3">
@@ -539,8 +566,8 @@
                             <span class="px-2 py-1 rounded bg-slate-950 border border-slate-800">Contactors & Relays</span>
                         </div>
 
-                        <a href="https://jeffry-lacanglacang.github.io/Motor-Control-Simulator/" 
-                           target="_blank" 
+                        <a href="https://jeffry-lacanglacang.github.io/Motor-Control-Simulator/"
+                           target="_blank"
                            rel="noopener noreferrer"
                            class="touch-target w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-[0.98] text-slate-950 font-bold text-sm transition-all">
                             <span>Launch Live Simulator</span>
@@ -695,11 +722,11 @@
             </div>
 
             <div class="relative border-l-2 border-slate-800 ml-3 sm:ml-6 space-y-8">
-                
+
                 <!-- Role 1: Carmen Copper Corporation -->
                 <div class="relative pl-6 sm:pl-10">
                     <span class="absolute -left-[9px] top-6 w-4 h-4 rounded-full bg-amber-500 ring-4 ring-slate-950"></span>
-                    
+
                     <div class="rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-amber-500/40 p-6 sm:p-8 transition-colors">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5 pb-4 border-b border-slate-800">
                             <div>
@@ -742,7 +769,7 @@
                 <!-- Role 2: Sarrosa International Hotel and Residential Suites -->
                 <div class="relative pl-6 sm:pl-10">
                     <span class="absolute -left-[9px] top-6 w-4 h-4 rounded-full bg-cyan-500 ring-4 ring-slate-950"></span>
-                    
+
                     <div class="rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-cyan-500/40 p-6 sm:p-8 transition-colors">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5 pb-4 border-b border-slate-800">
                             <div>
@@ -778,7 +805,7 @@
                 <!-- Role 3: Guam Advanced Systems Inc. -->
                 <div class="relative pl-6 sm:pl-10">
                     <span class="absolute -left-[9px] top-6 w-4 h-4 rounded-full bg-slate-500 ring-4 ring-slate-950"></span>
-                    
+
                     <div class="rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-slate-600 p-6 sm:p-8 transition-colors">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5 pb-4 border-b border-slate-800">
                             <div>
@@ -877,7 +904,7 @@
         <section id="contact" class="scroll-mt-24">
             <div class="rounded-2xl bg-slate-900/90 border border-slate-800 p-6 sm:p-10 shadow-2xl">
                 <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12">
-                    
+
                     <!-- Left Column: Direct Contact Info -->
                     <div class="lg:col-span-2 flex flex-col justify-between space-y-6">
                         <div>
@@ -963,7 +990,7 @@
                                     <i data-lucide="external-link" class="w-4 h-4"></i>
                                     <span>Open Gmail Compose</span>
                                 </button>
-                                
+
                                 <button type="button" onclick="copyFormattedMessage()" class="touch-target px-4 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.98] text-slate-200 border border-slate-700 hover:border-amber-500/50 font-semibold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer" title="Copy formatted message to clipboard">
                                     <i data-lucide="clipboard-copy" class="w-4 h-4 text-amber-400"></i>
                                     <span>Copy Message</span>
@@ -1185,6 +1212,39 @@
         // Set current year in footer
         document.getElementById('current-year').textContent = new Date().getFullYear();
 
+        // Simulator Preview Lightbox Modal
+        const previewModal = document.getElementById('preview-modal');
+        const previewModalImg = document.getElementById('preview-modal-img');
+        const previewModalTitle = document.getElementById('preview-modal-title');
+        const previewModalBadge = document.getElementById('preview-modal-badge');
+
+        function openPreviewModal(src, title, badge) {
+            previewModalImg.src = src;
+            previewModalImg.alt = `${title} full preview`;
+            previewModalTitle.textContent = title;
+            previewModalBadge.textContent = badge;
+            previewModal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function closePreviewModal() {
+            previewModal.classList.add('hidden');
+            previewModalImg.src = '';
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        previewModal.addEventListener('click', (e) => {
+            if (e.target === previewModal) {
+                closePreviewModal();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !previewModal.classList.contains('hidden')) {
+                closePreviewModal();
+            }
+        });
+
         // Mobile navigation toggle
         const mobileMenuBtn = document.getElementById('mobile-menu-btn');
         const mobileMenu = document.getElementById('mobile-menu');
@@ -1314,7 +1374,7 @@
 
             const subject = `[Portfolio Inquiry - ${inquiryType}] from ${name || 'Visitor'}`;
             const body = `Hello Jeffry,\n\n${message || '(Write your message here)'}\n\n---\nSender Name: ${name || 'Not specified'}\nSender Email: ${email || 'Not specified'}\nInquiry Category: ${inquiryType}`;
-            
+
             return { subject, body };
         }
 
